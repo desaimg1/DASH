@@ -5,7 +5,7 @@ Tests to verify essential functionality using low-rate traffic (SAI PTF).
 
 | Folder/File | Description |
 | --- | --- |
-| [`test_underlay_bgp.py`](test_underlay_bgp.py) | Verifies underlay BGP Established with ixia-c. We need licenced ixia-c version for verifying protocols. 
-Please follow the link below for license access
-1. https://github.com/open-traffic-generator/otg-examples/blob/main/KENG.md
+| [`saidashacl.py`](./ptf/saidashacl.py) | DASH ACL test cases
+| [`saidashvnet_sanity.py`](./ptf/saidashvnet_sanity.py) | Basic positive VNET-to-VNET test cases designed for running on BMv2
+| [`saidashvnet.py`](./ptf/saidashvnet.py) | More VNET-to-VNET test cases designed to provide a full feature coverage
 
