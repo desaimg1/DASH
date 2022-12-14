@@ -29,18 +29,6 @@ Topology Used :
 ###############################################################
 
 SPEED = "SPEED_100_GBPS"
-TOTALPACKETS = 5
-PPS = 1
-TRAFFIC_SLEEP_TIME = 10
-PACKET_LENGTH = 128
-ENI_IP = "1.1.0.1"
-NETWORK_IP1 = "1.128.0.1"
-NETWORK_IP2 = "1.128.0.3"
-
-DPU_VTEP_IP = "221.0.0.2"
-ENI_VTEP_IP = "221.0.1.11"
-NETWORK_VTEP_IP = "221.0.2.101"
-
 BGP_TYPE = "ebgp"
 NUMBER_OF_ROUTES = 10
 
@@ -53,7 +41,7 @@ def test_underlay_bgp(confgen, dpu, dataplane):
     result = True 
 
     # STEP1 : Configure DPU
-    with (current_file_dir / 'config_bgp_setup_commands.json').open(mode='r') as config_file:
+    with (current_file_dir / 'config_underlay_bgp.json').open(mode='r') as config_file:
         setup_commands = json.load(config_file)
     result = [*dpu.process_commands(setup_commands)]
     print("\n======= SAI commands RETURN values =======")
