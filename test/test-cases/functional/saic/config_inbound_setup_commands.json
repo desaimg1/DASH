@@ -5,7 +5,7 @@
     "type": "SAI_OBJECT_TYPE_VIP_ENTRY",
     "key": {
       "switch_id": "$SWITCH_ID",
-      "vip": "192.168.0.1"
+      "vip": "221.0.0.2"
     },
     "attributes": [
       "SAI_VIP_ENTRY_ATTR_ACTION",
@@ -18,7 +18,7 @@
     "type": "SAI_OBJECT_TYPE_DIRECTION_LOOKUP_ENTRY",
     "key": {
       "switch_id": "$SWITCH_ID",
-      "vni": "2000"
+      "vni": "11"
     },
     "attributes": [
       "SAI_DIRECTION_LOOKUP_ENTRY_ATTR_ACTION",
@@ -49,7 +49,7 @@
     "type": "SAI_OBJECT_TYPE_VNET",
     "attributes": [
       "SAI_VNET_ATTR_VNI",
-      "2000"
+      "11"
     ]
   },
   {
@@ -66,9 +66,9 @@
       "SAI_ENI_ATTR_ADMIN_STATE",
       "True",
       "SAI_ENI_ATTR_VM_UNDERLAY_DIP",
-      "10.10.2.10",
+      "221.0.1.11",
       "SAI_ENI_ATTR_VM_VNI",
-      "9",
+      "11",
       "SAI_ENI_ATTR_VNET_ID",
       "$vnet_1",
       "SAI_ENI_ATTR_INBOUND_V4_STAGE1_DASH_ACL_GROUP_ID",
@@ -119,7 +119,7 @@
     "type": "SAI_OBJECT_TYPE_ENI_ETHER_ADDRESS_MAP_ENTRY",
     "key": {
       "switch_id": "$SWITCH_ID",
-      "address": "00:AA:AA:AA:AA:00"
+      "address": "00:1A:C5:00:00:01"
     },
     "attributes": [
       "SAI_ENI_ETHER_ADDRESS_MAP_ENTRY_ATTR_ENI_ID",
@@ -132,11 +132,17 @@
     "type": "SAI_OBJECT_TYPE_INBOUND_ROUTING_ENTRY",
     "key": {
       "switch_id": "$SWITCH_ID",
-      "vni": "1000"
+      "eni_id": "$eni_id",
+      "vni": "101",
+      "sip": "221.0.1.101",
+      "sip_mask": "255.255.255.0",
+      "priority": 0
     },
     "attributes": [
       "SAI_INBOUND_ROUTING_ENTRY_ATTR_ACTION",
-      "SAI_INBOUND_ROUTING_ENTRY_ACTION_VXLAN_DECAP_PA_VALIDATE"
+      "SAI_INBOUND_ROUTING_ENTRY_ACTION_VXLAN_DECAP_PA_VALIDATE",
+      "SAI_INBOUND_ROUTING_ENTRY_ATTR_SRC_VNET_ID",
+      "$vnet_1"
     ]
   },
   {
@@ -145,9 +151,8 @@
     "type": "SAI_OBJECT_TYPE_PA_VALIDATION_ENTRY",
     "key": {
       "switch_id": "$SWITCH_ID",
-      "eni_id": "$eni_id",
-      "sip": "10.10.2.10",
-      "vni": "1000"
+      "sip": "221.0.1.101",
+      "vnet_id": "$vnet_1"
     },
     "attributes": [
       "SAI_PA_VALIDATION_ENTRY_ATTR_ACTION",

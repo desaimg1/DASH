@@ -3,6 +3,7 @@ from pathlib import Path
 from pprint import pprint
 import time
 import pytest
+from test-cases.utils.snappi_utils import *
 
 current_file_dir = Path(__file__).parent
 
@@ -54,7 +55,7 @@ def test_vm_to_vm_commn_acl_inbound(confgen, dpu, dataplane, test_type):
     result = True 
 
     # STEP1 : Configure DPU
-    with (current_file_dir / 'dpu_json/test_vnet_inbound_setup_commands.json').open(mode='r') as config_file:
+    with (current_file_dir / 'config_inbound_setup_commands.json').open(mode='r') as config_file:
         setup_commands = json.load(config_file)
     result = [*dpu.process_commands(setup_commands)]
     print("\n======= SAI commands RETURN values =======")
@@ -62,7 +63,7 @@ def test_vm_to_vm_commn_acl_inbound(confgen, dpu, dataplane, test_type):
 
     # STEP2 : Configure TGEN
     # configure L1 properties on configured ports
-    dataplane.config_l1_properties(SPEED)
+    config_l1_properties(dataplane, SPEED)
     
     # inbound Flow settings
     f2 = dataplane.configuration.flows.flow(name="INBOUND")[-1]
@@ -107,11 +108,11 @@ def test_vm_to_vm_commn_acl_inbound(confgen, dpu, dataplane, test_type):
     dataplane.set_config()
     
     # STEP3 : Verify Traffic
-    dataplane.start_traffic(f2.name)
+    start_traffic(dataplane, f2.name)
     time.sleep(10)            # TODO check traffic state stopped for fixed packet count
     dataplane.stop_traffic()
     
-    res1 = dataplane.check_flow_tx_rx_frames_stats(f2.name)
+    res1 = check_flow_tx_rx_frames_stats(dataplane, f2.name)
     print("res1 {}".format(res1))
     if (res1) :
         result = False

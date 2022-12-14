@@ -3,6 +3,7 @@ from pathlib import Path
 from pprint import pprint
 import time
 import pytest
+from test-cases.utils.snappi_utils import *
 
 current_file_dir = Path(__file__).parent
 
@@ -62,7 +63,7 @@ def test_vm_to_vm_commn_udp_outbound(confgen, dpu, dataplane, test_type):
     result = True 
 
     # STEP1 : Configure DPU
-    with (current_file_dir / 'dpu_json/test_vnet_outbound_setup_commands.json').open(mode='r') as config_file:
+    with (current_file_dir / 'config_outbound_setup_commands.json').open(mode='r') as config_file:
         setup_commands = json.load(config_file)
     result = [*dpu.process_commands(setup_commands)]
     print("\n======= SAI commands RETURN values =======")
@@ -70,7 +71,7 @@ def test_vm_to_vm_commn_udp_outbound(confgen, dpu, dataplane, test_type):
 
     # STEP2 : Configure TGEN
     # configure L1 properties on configured ports
-    dataplane.config_l1_properties(SPEED)
+    config_l1_properties(dataplane, SPEED)
     
     # Flow1 settings
     f1 = dataplane.configuration.flows.flow(name="ENI_TO_NETWORK")[-1]
@@ -153,13 +154,13 @@ def test_vm_to_vm_commn_udp_outbound(confgen, dpu, dataplane, test_type):
     dataplane.set_config()
 
     # STEP3 : Verify Traffic flow
-    dataplane.start_traffic(f1.name)
+    start_traffic(dataplane, f1.name)
     time.sleep(0.5)
-    dataplane.start_traffic(f2.name)
+    start_traffic(dataplane, f2.name)
     time.sleep(TRAFFIC_SLEEP_TIME)            # TODO check traffic state stopped for fixed packet count
     dataplane.stop_traffic()
-    res1 = dataplane.check_flow_tx_rx_frames_stats(f1.name)
-    res2 = dataplane.check_flow_tx_rx_frames_stats(f2.name)
+    res1 = check_flow_tx_rx_frames_stats(dataplane, f1.name)
+    res2 = check_flow_tx_rx_frames_stats(dataplane, f2.name)
     print("res1 and res2 is {} {}".format(res1, res2))
     if not (res1 and res2) :
         result = False        
