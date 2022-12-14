@@ -13,14 +13,7 @@ vnet to vnet communication with UDP traffic flow with 8 ENIS and 3k IPs respecti
 Configure BMv2 as DPU 
 Configure TGEN UDP traffic flow as one vnet to another vnet of two ixia-c ports
 Verify Traffic flow between vnet to vnet through DPU  
-Topology Used :
-       --------          -------          -------- 
-      |        |        |       |        |        |
-      |        |        |       |        |        |
-      | IXIA-C |--------|  BMv2 |--------| IXIA-C |
-      |        |        |       |        |        |
-      |        |        |       |        |        |
-       --------          -------          -------- 
+
        
 """
 
