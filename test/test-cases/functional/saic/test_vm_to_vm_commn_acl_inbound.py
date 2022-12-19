@@ -3,7 +3,9 @@ from pathlib import Path
 from pprint import pprint
 import time
 import pytest
-from test-cases.utils.snappi_utils import *
+import sys
+sys.path.append("../../utils")
+import snappi_utils as su
 
 current_file_dir = Path(__file__).parent
 
@@ -63,7 +65,7 @@ def test_vm_to_vm_commn_acl_inbound(confgen, dpu, dataplane, test_type):
 
     # STEP2 : Configure TGEN
     # configure L1 properties on configured ports
-    config_l1_properties(dataplane, SPEED)
+    su.config_l1_properties(dataplane, SPEED)
     
     # inbound Flow settings
     f2 = dataplane.configuration.flows.flow(name="INBOUND")[-1]
@@ -108,11 +110,11 @@ def test_vm_to_vm_commn_acl_inbound(confgen, dpu, dataplane, test_type):
     dataplane.set_config()
     
     # STEP3 : Verify Traffic
-    start_traffic(dataplane, f2.name)
+    su.start_traffic(dataplane, f2.name)
     time.sleep(10)            # TODO check traffic state stopped for fixed packet count
     dataplane.stop_traffic()
     
-    res1 = check_flow_tx_rx_frames_stats(dataplane, f2.name)
+    res1 = su.check_flow_tx_rx_frames_stats(dataplane, f2.name)
     print("res1 {}".format(res1))
     if (res1) :
         result = False
