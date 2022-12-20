@@ -36,9 +36,9 @@ Topology Used :
 TEST_TYPES = ["inbound"]
 
 SPEED = "SPEED_100_GBPS"
-TOTALPACKETS = 5
-PPS = 1
-TRAFFIC_SLEEP_TIME = (TOTALPACKETS * PPS) + 2 
+TOTALPACKETS = 100
+PPS = 10
+TRAFFIC_SLEEP_TIME = (TOTALPACKETS / PPS) + 2 
 PACKET_LENGTH = 128
 ENI_IP = "1.1.0.1"
 NETWORK_IP2 = "1.128.0.2"
@@ -53,15 +53,14 @@ NETWORK_VTEP_IP = "221.0.2.101"
 ###############################################################
 @pytest.mark.parametrize('test_type', TEST_TYPES)       
 def test_vm_to_vm_commn_acl_inbound(confgen, dpu, dataplane, test_type):
-    # declare result 
-    result = True 
 
     # STEP1 : Configure DPU
     with (current_file_dir / 'config_inbound_setup_commands.json').open(mode='r') as config_file:
         setup_commands = json.load(config_file)
-    result = [*dpu.process_commands(setup_commands)]
-    print("\n======= SAI commands RETURN values =======")
-    pprint(result)
+    results = [*dpu.process_commands(setup_commands)]
+    print("\n======= SAI setup commands RETURN values =======")
+    pprint(results)
+    assert all(results), "Setup error"
 
     # STEP2 : Configure TGEN
     # configure L1 properties on configured ports
@@ -72,9 +71,9 @@ def test_vm_to_vm_commn_acl_inbound(confgen, dpu, dataplane, test_type):
     f2.tx_rx.port.tx_name = dataplane.configuration.ports[1].name
     f2.tx_rx.port.rx_name = dataplane.configuration.ports[0].name
     f2.size.fixed = PACKET_LENGTH
-    # send 1000 packets and stop
+    # send n packets and stop
     f2.duration.fixed_packets.packets = TOTALPACKETS
-    # send 1000 packets per second
+    # send n packets per second
     f2.rate.pps = PPS
     f2.metrics.enable = True
 
@@ -111,25 +110,22 @@ def test_vm_to_vm_commn_acl_inbound(confgen, dpu, dataplane, test_type):
     
     # STEP3 : Verify Traffic
     su.start_traffic(dataplane, f2.name)
-    time.sleep(10)            # TODO check traffic state stopped for fixed packet count
+    time.sleep(3)            # TODO check traffic state stopped for fixed packet count
     dataplane.stop_traffic()
     
-    res1 = su.check_flow_tx_rx_frames_stats(dataplane, f2.name)
+    res = su.check_flow_tx_rx_frames_stats(dataplane, f2.name)
+    if res: 
+        res1 = False
     print("res1 {}".format(res1))
-    if (res1) :
-        result = False
 
     # STEP4 : Cleanup
     dataplane.tearDown()
-    cleanup_commands = []
-    for val in setup_commands:
-        new_dict = {'name' : val['name'] ,'op': 'remove'}
-        cleanup_commands.append(new_dict)
-
-    result = [*dpu.process_commands(cleanup_commands)]
-    print("\n======= SAI commands RETURN values =======")
-    pprint(result)
+    cleanup_commands = [{'name' : cmd['name'] ,'op': 'remove'} for cmd in setup_commands]
+    cleanup_commands = reversed(cleanup_commands)
+    results = [*dpu.process_commands(cleanup_commands)]
+    print("\n======= SAI teardown commands RETURN values =======")
+    assert all([x==0 for x in results]), "Teardown Error"
 
     # STEP5 : Print Result of the test
-    print("Final Result : {}".format(result))
-    assert result == False, "Test Vm to Vm communication with ACL on {} flow traffic Failed!!".format(test_type)
+    print("Final Result : {}".format(res1))
+    assert res1, "Traffic test Deny failure"

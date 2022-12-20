@@ -3,7 +3,9 @@ from pathlib import Path
 from pprint import pprint
 import time
 import pytest
-from test-cases.utils.snappi_utils import *
+import sys
+sys.path.append("../../utils")
+import snappi_utils as su
 
 current_file_dir = Path(__file__).parent
 
@@ -36,7 +38,7 @@ TEST_TYPES = ["inbound"]
 SPEED = "SPEED_100_GBPS"
 TOTALPACKETS = 1000
 PPS = 100
-TRAFFIC_SLEEP_TIME = (TOTALPACKETS * PPS) + 2 
+TRAFFIC_SLEEP_TIME = (TOTALPACKETS / PPS) + 2 
 PACKET_LENGTH = 128
 ENI_IP = "1.1.0.1"
 NETWORK_IP1 = "1.128.0.1"
@@ -57,28 +59,27 @@ OUTER_DST_MAC_F2 = "c8:2c:2b:00:d1:34"
 ###############################################################
 @pytest.mark.parametrize('test_type', TEST_TYPES)       
 def test_vm_to_vm_commn_udp(confgen, dpu, dataplane, test_type):
-    # declare result 
-    result = True 
 
     # STEP1 : Configure DPU
     with (current_file_dir / 'config_inbound_setup_commands.json').open(mode='r') as config_file:
-        vnet_inbound_setup_commands = json.load(config_file)
-    result = [*dpu.process_commands(vnet_inbound_setup_commands)]
-    print("\n======= SAI commands RETURN values =======\n")
-    pprint(result)
+        setup_commands = json.load(config_file)
+    results = [*dpu.process_commands(setup_commands)]
+    print("\n======= SAI setup commands RETURN values =======")
+    pprint(results)
+    assert all(results), "Setup error"
 
     # STEP2 : Configure TGEN
     # configure L1 properties on configured ports
-    config_l1_properties(dataplane, SPEED)
+    su.config_l1_properties(dataplane, SPEED)
     
     # Flow1 settings
     f1 = dataplane.configuration.flows.flow(name="ENI_TO_NETWORK")[-1]
     f1.tx_rx.port.tx_name = dataplane.configuration.ports[0].name
     f1.tx_rx.port.rx_name = dataplane.configuration.ports[1].name
     f1.size.fixed = PACKET_LENGTH
-    # send 1000 packets and stop
+    # send n packets and stop
     f1.duration.fixed_packets.packets = TOTALPACKETS
-    # send 100 packets per second
+    # send n packets per second
     f1.rate.pps = PPS
     f1.metrics.enable = True
 
@@ -152,29 +153,27 @@ def test_vm_to_vm_commn_udp(confgen, dpu, dataplane, test_type):
     dataplane.set_config()
 
     # STEP3 : Verify Traffic
-    dataplane.start_traffic(f2.name)
+    su.start_traffic(dataplane, f2.name)
     time.sleep(0.5)
-    dataplane.start_traffic(f1.name)
-    time.sleep(TRAFFIC_SLEEP_TIME)            # TODO check traffic state stopped for fixed packet count
+    su.start_traffic(dataplane, f1.name)
+    time.sleep(TRAFFIC_SLEEP_TIME)    
     dataplane.stop_traffic()
     
-    res1 = dataplane.check_flow_tx_rx_frames_stats(f1.name)
-    res2 = dataplane.check_flow_tx_rx_frames_stats(f2.name)
+    res1 = su.check_flow_tx_rx_frames_stats(dataplane, f1.name)
+    res2 = su.check_flow_tx_rx_frames_stats(dataplane, f2.name)
     print("res1 and res2 is {} {}".format(res1, res2))
-    if not (res1 and res2) :
-        result = False
 
     # STEP4 : Cleanup
     dataplane.tearDown()
     vnet_inbound_cleanup_commands = []
-    for val in vnet_inbound_setup_commands:
-        new_dict = {'name' : val['name'] ,'op': 'remove'}
-        vnet_inbound_cleanup_commands.append(new_dict)
-
-    result = [*dpu.process_commands(vnet_inbound_cleanup_commands)]
-    print("\n======= SAI commands RETURN values =======")
-    pprint(result)
+    cleanup_commands = [{'name' : cmd['name'] ,'op': 'remove'} for cmd in setup_commands]
+    cleanup_commands = reversed(cleanup_commands)
+    results = [*dpu.process_commands(cleanup_commands)]
+    print("\n======= SAI teardown commands RETURN values =======")
+    pprint(results)
+    assert all([x==0 for x in results]), "Teardown Error"
 
     # STEP5 : Print Result of the test
     print("Final Result : {}".format(result))
-    assert result==False, "Test Vm to Vm communication with UDP flow on {} flow traffic Failed!!".format(test_type)
+    assert res1, "Traffic test failure"
+    assert res2, "Traffic test failure"
