@@ -4,7 +4,7 @@ from pprint import pprint
 import time
 import pytest
 import sys
-sys.path.append("../../utils")
+sys.path.append("../utils")
 import snappi_utils as su
 
 current_file_dir = Path(__file__).parent
