@@ -51,13 +51,12 @@ def check_ping(dataplane, ip_obj_name, ip, ip_type="ipv4"):
     else:
         return False
 
-def start_traffic(s, flow_name=None):
+def start_traffic(dataplane, flow_name=None):
     """ Start traffic flow(s) which are already configured.
     """
     ts = dataplane.api.transmit_state()
     ts.state = ts.START
     if flow_name != None:
         ts.flow_names = [flow_name]
-    logging.info('Start traffic')
     res = dataplane.api.set_transmit_state(ts)
     assert dataplane.api_results_ok(res), res

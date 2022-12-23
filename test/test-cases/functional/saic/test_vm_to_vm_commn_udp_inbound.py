@@ -68,23 +68,15 @@ class TestUdpInbound:
         return setup_commands
 
     def test_setup(self, dpu, setup_config):
-        results = [*dpu.process_commands(setup_coonfig)]
+        results = [*dpu.process_commands(setup_config)]
         print("\n======= SAI setup commands RETURN values =======")
         pprint(results)
         assert all(results), "Setup error"
 
-    def test_vm_to_vm_commn_udp(self, dataplane):
-        # Configure DPU
-        with (current_file_dir / 'config_inbound_setup_commands.json').open(mode='r') as config_file:
-                setup_commands = json.load(config_file)
-        results = [*dpu.process_commands(setup_commands)]
-        print("\n======= SAI setup commands RETURN values =======")
-        pprint(results)
-        assert all(results), "Setup error"
-
+    def test_vm_to_vm_commn_udp_inbound(self, dataplane):
         # Configure TGEN
         # configure L1 properties on configured ports
-        su.config_l1_properties(dataplane, SPEED)
+        # su.config_l1_properties(dataplane, SPEED)
         
         # Flow1 settings
         f1 = dataplane.configuration.flows.flow(name="ENI_TO_NETWORK")[-1]

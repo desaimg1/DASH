@@ -4,7 +4,7 @@ from pprint import pprint
 import time
 import pytest
 import sys
-sys.path.append("../../utils")
+sys.path.append("../utils")
 import snappi_utils as su
 
 current_file_dir = Path(__file__).parent
@@ -62,7 +62,7 @@ class TestAclInbound:
         return setup_commands
 
     def test_setup(self, dpu, setup_config):
-        results = [*dpu.process_commands(setup_coonfig)]
+        results = [*dpu.process_commands(setup_config)]
         print("\n======= SAI setup commands RETURN values =======")
         pprint(results)
         assert all(results), "Setup error"
@@ -70,7 +70,7 @@ class TestAclInbound:
     def test_vm_to_vm_commn_acl_inbound(self, dataplane):
 
         # configure L1 properties on configured ports
-        su.config_l1_properties(dataplane, SPEED)
+        # su.config_l1_properties(dataplane, SPEED)
         
         # inbound Flow settings
         f2 = dataplane.configuration.flows.flow(name="INBOUND")[-1]
@@ -127,7 +127,7 @@ class TestAclInbound:
         dataplane.tearDown()
 
         # Validate test result
-        assert acl_traffic_result==False, "Traffic test Deny failure"print("res1 {}".format(res1))
+        assert acl_traffic_result==False, "Traffic test Deny failure"
 
     def test_cleanup(self, dpu, setup_config):
         cleanup_commands = [{'name' : cmd['name'] ,'op': 'remove'} for cmd in setup_config]

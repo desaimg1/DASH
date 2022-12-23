@@ -63,7 +63,7 @@ class TestAclOutbound:
         return setup_commands
 
     def test_setup(self, dpu, setup_config):
-        results = [*dpu.process_commands(setup_coonfig)]
+        results = [*dpu.process_commands(setup_config)]
         print("\n======= SAI setup commands RETURN values =======")
         pprint(results)
         assert all(results), "Setup error"
@@ -72,7 +72,7 @@ class TestAclOutbound:
 
         # Configure TGEN
         # configure L1 properties on configured ports
-        su.config_l1_properties(dataplane, SPEED)
+        # su.config_l1_properties(dataplane, SPEED)
         
         # Flow1 settings
         f1 = dataplane.configuration.flows.flow(name="OUTBOUND")[-1]

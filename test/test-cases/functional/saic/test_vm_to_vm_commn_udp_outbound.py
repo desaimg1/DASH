@@ -71,7 +71,7 @@ class TestUdpOutbound:
         return setup_commands
 
     def test_setup(self, dpu, setup_config):
-        results = [*dpu.process_commands(setup_coonfig)]
+        results = [*dpu.process_commands(setup_config)]
         print("\n======= SAI setup commands RETURN values =======")
         pprint(results)
         assert all(results), "Setup error"
@@ -79,7 +79,7 @@ class TestUdpOutbound:
     def test_vm_to_vm_commn_udp_outbound(self, dataplane):
         # Configure TGEN
         # configure L1 properties on configured ports
-        su.config_l1_properties(dataplane, SPEED)
+        # su.config_l1_properties(dataplane, SPEED)
         
         # Flow1 settings
         f1 = dataplane.configuration.flows.flow(name="ENI_TO_NETWORK")[-1]
@@ -168,8 +168,8 @@ class TestUdpOutbound:
         time.sleep(TRAFFIC_SLEEP_TIME)            
         dataplane.stop_traffic()
       
-        res1 = check_flow_tx_rx_frames_stats(dataplane, f1.name)
-        res2 = check_flow_tx_rx_frames_stats(dataplane, f2.name)
+        res1 = su.check_flow_tx_rx_frames_stats(dataplane, f1.name)
+        res2 = su.check_flow_tx_rx_frames_stats(dataplane, f2.name)
 
         dataplane.tearDown()
 
