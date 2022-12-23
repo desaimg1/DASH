@@ -22,7 +22,7 @@ Topology Used :
        --------          -------          -------- 
       |        |        |       |        |        |
       |        |        |       |        |        |
-      | IXIA-C |--------|  BMv2 |--------| IXIA-C |
+      |  TGEN  |--------|  DPU  |--------|  TGEN  |
       |        |        |       |        |        |
       |        |        |       |        |        |
        --------          -------          -------- 
@@ -32,8 +32,6 @@ Topology Used :
 ###############################################################
 #                  Declaring Global variables
 ###############################################################
-TEST_TYPES = ["outbound"]
-
 SPEED = "SPEED_100_GBPS"
 TOTALPACKETS = 100
 PPS = 10
@@ -51,80 +49,89 @@ NETWORK_VTEP_IP = "221.0.2.101"
 #                  Start of the testcase
 ###############################################################
 
-@pytest.mark.parametrize('test_type',TEST_TYPES)       
-def test_vm_to_vm_commn_acl_outbound(confgen, dpu, dataplane, test_type):
+class TestAclOutbound:
 
-    # STEP1 : Configure DPU
-    with (current_file_dir / 'config_outbound_setup_commands.json').open(mode='r') as config_file:
-        setup_commands = json.load(config_file)
-    results = [*dpu.process_commands(setup_commands)]
-    print("\n======= SAI setup commands RETURN values =======")
-    pprint(results)
-    assert all(results), "Setup error"
+    @pytest.fixture(scope="class")
+    def setup_config(self):
+        """
+        Fixture returns the content of the file with SAI configuration commands.
+        scope=class - The file is loaded once for the whole test class
+        """
+        current_file_dir = Path(__file__).parent
+        with (current_file_dir / 'config_outbound_setup_commands.json').open(mode='r') as config_file:
+            setup_commands = json.load(config_file)
+        return setup_commands
 
-    # STEP2 : Configure TGEN
-    # configure L1 properties on configured ports
-    su.config_l1_properties(dataplane, SPEED)
-    
-    # Flow1 settings
-    f1 = dataplane.configuration.flows.flow(name="OUTBOUND")[-1]
-    f1.tx_rx.port.tx_name = dataplane.configuration.ports[0].name
-    f1.tx_rx.port.rx_name = dataplane.configuration.ports[1].name
-    f1.size.fixed = PACKET_LENGTH
-    # send n packets and stop
-    f1.duration.fixed_packets.packets = TOTALPACKETS
-    # send n packets per second
-    f1.rate.pps = PPS
-    f1.metrics.enable = True
+    def test_setup(self, dpu, setup_config):
+        results = [*dpu.process_commands(setup_coonfig)]
+        print("\n======= SAI setup commands RETURN values =======")
+        pprint(results)
+        assert all(results), "Setup error"
 
-    outer_eth1, ip1, udp1, vxlan1, inner_eth1, inner_ip1, inner_udp1= (
-            f1.packet.ethernet().ipv4().udp().vxlan().ethernet().ipv4().udp()
-    )
+    def test_vm_to_vm_commn_acl_outbound(self, dataplane):
 
-    outer_eth1.src.value = "80:09:02:01:00:01"
-    outer_eth1.dst.value = "c8:2c:2b:00:d1:30"
-    outer_eth1.ether_type.value = 2048
+        # Configure TGEN
+        # configure L1 properties on configured ports
+        su.config_l1_properties(dataplane, SPEED)
+        
+        # Flow1 settings
+        f1 = dataplane.configuration.flows.flow(name="OUTBOUND")[-1]
+        f1.tx_rx.port.tx_name = dataplane.configuration.ports[0].name
+        f1.tx_rx.port.rx_name = dataplane.configuration.ports[1].name
+        f1.size.fixed = PACKET_LENGTH
+        # send n packets and stop
+        f1.duration.fixed_packets.packets = TOTALPACKETS
+        # send n packets per second
+        f1.rate.pps = PPS
+        f1.metrics.enable = True
 
-    ip1.src.value = ENI_VTEP_IP #ENI - VTEP
-    ip1.dst.value = DPU_VTEP_IP #DPU - VTEP
+        outer_eth1, ip1, udp1, vxlan1, inner_eth1, inner_ip1, inner_udp1= (
+                f1.packet.ethernet().ipv4().udp().vxlan().ethernet().ipv4().udp()
+        )
 
-    udp1.src_port.value = 11638
-    udp1.dst_port.value = 4789
+        outer_eth1.src.value = "80:09:02:01:00:01"
+        outer_eth1.dst.value = "c8:2c:2b:00:d1:30"
+        outer_eth1.ether_type.value = 2048
 
-    #vxlan.flags.value = 
-    vxlan1.vni.value = 11
-    vxlan1.reserved0.value = 0
-    vxlan1.reserved1.value = 0
+        ip1.src.value = ENI_VTEP_IP #ENI - VTEP
+        ip1.dst.value = DPU_VTEP_IP #DPU - VTEP
 
-    inner_eth1.src.value = "00:1A:C5:00:00:01"
-    #inner_eth1.dst.value = "00:1b:6e:00:00:02"
-    inner_eth1.dst.value = "00:1b:6e:14:00:02"
-    inner_ip1.src.value = ENI_IP   #ENI
-    inner_ip1.dst.value = NETWORK_IP1  #world
+        udp1.src_port.value = 11638
+        udp1.dst_port.value = 4789
 
-    inner_udp1.src_port.value = 10000
-    inner_udp1.dst_port.value = 20000
+        #vxlan.flags.value = 
+        vxlan1.vni.value = 11
+        vxlan1.reserved0.value = 0
+        vxlan1.reserved1.value = 0
 
-    dataplane.set_config()
+        inner_eth1.src.value = "00:1A:C5:00:00:01"
+        inner_eth1.dst.value = "00:1b:6e:14:00:02"
+        inner_ip1.src.value = ENI_IP   #ENI
+        inner_ip1.dst.value = NETWORK_IP1  #world
 
-    # STEP3 : Verify traffic
-    su.start_traffic(dataplane, f1.name)
-    time.sleep(3)            
-    dataplane.stop_traffic()
-    res = su.check_flow_tx_rx_frames_stats(dataplane, f1.name)
-    if res: 
-        res1 = False
-    print("res1 {}".format(res1))    
+        inner_udp1.src_port.value = 10000
+        inner_udp1.dst_port.value = 20000
 
-    # STEP4 : Cleanup
-    dataplane.tearDown()
-    cleanup_commands = [{'name' : cmd['name'] ,'op': 'remove'} for cmd in setup_commands]
-    cleanup_commands = reversed(cleanup_commands)
-    results = [*dpu.process_commands(cleanup_commands)]
-    print("\n======= SAI teardown commands RETURN values =======")
-    pprint(results)
-    assert all([x==0 for x in results]), "Teardown Error"
+        dataplane.set_config()
 
-    # STEP5 : Print Result of the test
-    print("Traffic Result : {}".format(res1))
-    assert res1, "Traffic test Deny failure"
+        # Verify traffic
+        su.start_traffic(dataplane, f1.name)
+        time.sleep(TRAFFIC_SLEEP_TIME)            
+        dataplane.stop_traffic()
+
+        #Packets should be denied
+        acl_traffic_result = su.check_flow_tx_rx_frames_stats(dataplane, f1.name)
+        print("Traffic Result : {}".format(acl_traffic_result))
+
+        dataplane.tearDown()
+
+        # Validate test result
+        assert acl_traffic_result==False, "Traffic test Deny failure"   
+
+    def test_cleanup(self, dpu, setup_config):
+        cleanup_commands = [{'name' : cmd['name'] ,'op': 'remove'} for cmd in setup_config]
+        cleanup_commands = reversed(cleanup_commands)
+        results = [*dpu.process_commands(cleanup_commands)]
+        print("\n======= SAI teardown commands RETURN values =======")
+        pprint(results)
+        assert all([x==0 for x in results]), "Teardown Error"
