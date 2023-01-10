@@ -14,9 +14,9 @@ This covers following scenario :
 
 vnet to vnet communication with UDP traffic flow :
 
-Configure BMv2 as DPU 
-Configure TGEN UDP traffic flow as one vnet to another vnet of two ixia-c ports
-Verify Traffic flow between vnet to vnet through DPU  
+Configure DUT 
+Configure TGEN UDP traffic flow as one vnet to another vnet of two OpenTrafficGenerator ports
+Verify Traffic flow between vnet to vnet through DUT  
 
 
 Topology Used :
@@ -24,7 +24,7 @@ Topology Used :
        --------          -------          -------- 
       |        |        |       |        |        |
       |        |        |       |        |        |
-      |  TGEN  |--------|  DPU  |--------|  TGEN  |
+      |  TGEN  |--------|  DUT  |--------|  TGEN  |
       |        |        |       |        |        |
       |        |        |       |        |        |
        --------          -------          -------- 

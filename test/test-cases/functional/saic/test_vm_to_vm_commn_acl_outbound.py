@@ -13,8 +13,8 @@ current_file_dir = Path(__file__).parent
 This covers following scenario :
 
 Test vnet to vnet communication with ACL on outbound direction:
-1. Configure DPU to deny and allow traffic
-2. Configure TGEN traffic flow as one vnet to another vnet of two ixia-c ports
+1. Configure DUT to deny and allow traffic
+2. Configure TGEN traffic flow as one vnet to another vnet of two OpenTrafficGenerator ports
 3. Verify Traffic denied through deny traffic IPs
 
 Topology Used :
@@ -22,7 +22,7 @@ Topology Used :
        --------          -------          -------- 
       |        |        |       |        |        |
       |        |        |       |        |        |
-      |  TGEN  |--------|  DPU  |--------|  TGEN  |
+      |  TGEN  |--------|  DUT  |--------|  TGEN  |
       |        |        |       |        |        |
       |        |        |       |        |        |
        --------          -------          -------- 
