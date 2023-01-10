@@ -3,7 +3,10 @@ from pathlib import Path
 from pprint import pprint
 import time
 import pytest
-from test-cases.utils.common_utils import create_ip_list
+import sys
+sys.path.append("../../utils")
+import snappi_utils as su
+import common_utils as cu
 
 current_file_dir = Path(__file__).parent
 
@@ -31,13 +34,12 @@ ENI_VTEP_IP = "221.0.1.11"
 NETWORK_VTEP_IP = "221.0.2.101"
 TOTAL_FLOWS = 8
 NO_OF_IPS_ON_EACH_FLOW = 3000
-eniIps = create_ip_list(ENI_IP, TOTAL_FLOWS, mask=16)
-networkIps = create_ip_list(NETWORK_IP1, TOTAL_FLOWS, mask=16, incr = 4)
+eniIps = cu.create_ip_list(ENI_IP, TOTAL_FLOWS, mask=16)
+networkIps = cu.create_ip_list(NETWORK_IP1, TOTAL_FLOWS, mask=16, incr = 4)
 
 BGP_TYPE = "ebgp"
 NUMBER_OF_ROUTES = 8
 BGP_AS_NUMBER = 200
-
 TOTALPACKETS = NO_OF_IPS_ON_EACH_FLOW * 5
 PPS = 1000
 TRAFFIC_SLEEP_TIME = (TOTALPACKETS / PPS) + 2
@@ -153,12 +155,12 @@ def dp(request, dataplane):
 class TestHero:
 
     def test_ping(self):
-        assert self.dp.check_ping('IPv4 1', '220.0.1.1') == False
-        assert self.dp.check_ping('IPv4 2', '220.0.2.1') == False
+        assert self.dp.check_ping('IPv4 1', '220.0.1.1'), "ping from TGEN to DUT failed"
+        assert self.dp.check_ping('IPv4 2', '220.0.2.1'), "ping from TGEN to DUT failed"
 
 
     def test_bgp_neighborship(self):
-        assert self.dp.check_bgp_neighborship_established() == True
+        assert su.check_bgp_neighborship_established(dp), "Verify BGP neighbourship failure" 
 
 
     def test_bgp_routes_advertised(self):
@@ -167,7 +169,7 @@ class TestHero:
         results = self.dp.api.get_metrics(req)
         for r in results.bgpv4_metrics:
             print(r)
-            assert int(r.routes_advertised) == NUMBER_OF_ROUTES
+            assert int(r.routes_advertised) == NUMBER_OF_ROUTES, "Verify BGP routes advertised count"
 
 
     def test_bgp_routes_received(self):
@@ -176,7 +178,7 @@ class TestHero:
         results = self.dp.api.get_metrics(req)
         for r in results.bgpv4_metrics:
             print(r)
-            assert r.routes_received == NUMBER_OF_ROUTES
+            assert r.routes_received == NUMBER_OF_ROUTES, "Verify BGP routes received count"
 
 
     def test_bgp_routes_withdraw_sent(self):
@@ -185,7 +187,7 @@ class TestHero:
         results = self.dp.api.get_metrics(req)
         for r in results.bgpv4_metrics:
             print(r)
-            assert r.route_withdraws_sent == 0
+            assert r.route_withdraws_sent == 0, "Verify BGP routes withdraw count"
 
 
     def test_bgp_routes_withdraw_received(self):
