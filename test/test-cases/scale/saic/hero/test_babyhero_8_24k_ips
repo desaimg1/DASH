@@ -10,8 +10,8 @@ current_file_dir = Path(__file__).parent
 """
 This covers following scenario :
 vnet to vnet communication with UDP traffic flow with 8 ENIS and 3k IPs respectively:
-Configure BMv2 as DPU 
-Configure TGEN UDP traffic flow as one vnet to another vnet of two ixia-c ports
+Configure DUT 
+Configure TGEN UDP traffic flow as one vnet to another vnet of two OpenTgenPorts ports
 Verify Traffic flow between vnet to vnet through DPU  
 
        
@@ -22,9 +22,6 @@ Verify Traffic flow between vnet to vnet through DPU
 ###############################################################
 
 SPEED = "SPEED_100_GBPS"
-TOTALPACKETS = 5
-PPS = 1
-TRAFFIC_SLEEP_TIME = 10
 ENI_IP = "1.1.0.1"
 NETWORK_IP1 = "1.128.0.1"
 NETWORK_IP_DENY = "1.128.1.1"
@@ -103,9 +100,9 @@ def dp(request, dataplane):
         f1.tx_rx.port.tx_name = dataplane.configuration.ports[0].name
         f1.tx_rx.port.rx_name = dataplane.configuration.ports[1].name
         f1.size.fixed = 128
-        # send 1000 packets and stop
+        # send n packets and stop
         f1.duration.fixed_packets.packets = TOTALPACKETS
-        # send 1000 packets per second
+        # send n packets per second
         f1.rate.pps = PPS
         f1.metrics.enable = True
 
