@@ -4,7 +4,7 @@ from pprint import pprint
 import time
 import pytest
 import sys
-sys.path.append("../../utils")
+sys.path.append("../../../utils")
 import snappi_utils as su
 import common_utils as cu
 
@@ -14,7 +14,7 @@ current_file_dir = Path(__file__).parent
 This covers following scenario :
 vnet to vnet communication with UDP traffic flow with 8 ENIS and 3k IPs respectively:
 Configure DUT 
-Configure TGEN UDP traffic flow as one vnet to another vnet of two OpenTgenPorts ports
+Configure TGEN UDP traffic flow as one vnet to another vnet of two OpenTrafficGenerator ports
 Verify Traffic flow between vnet to vnet through DPU  
 
        
