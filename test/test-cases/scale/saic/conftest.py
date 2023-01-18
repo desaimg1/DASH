@@ -64,7 +64,7 @@ def confgen():
     return dpugen.sai.SaiConfig()
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def dataplane(dataplane_instance):
     if dataplane_instance:
         dataplane_instance.setup()
