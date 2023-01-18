@@ -123,8 +123,6 @@ class TestAclOutbound:
         acl_traffic_result = su.check_flow_tx_rx_frames_stats(dataplane, f1.name)
         print("Traffic Result : {}".format(acl_traffic_result))
 
-        dataplane.tearDown()
-
         # Validate test result
         assert acl_traffic_result==False, "Traffic test Deny failure"   
 

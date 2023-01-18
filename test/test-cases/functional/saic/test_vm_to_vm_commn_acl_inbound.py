@@ -124,8 +124,6 @@ class TestAclInbound:
         # Print Result of the test
         print("Final Result : {}".format(acl_traffic_result))
 
-        dataplane.tearDown()
-
         # Validate test result
         assert acl_traffic_result==False, "Traffic test Deny failure"
 

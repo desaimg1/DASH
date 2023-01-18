@@ -168,8 +168,6 @@ class TestUdpInbound:
         res1 = su.check_flow_tx_rx_frames_stats(dataplane, f1.name)
         res2 = su.check_flow_tx_rx_frames_stats(dataplane, f2.name)
         print("res1 and res2 is {} {}".format(res1, res2))
-        
-        dataplane.tearDown()
 
         # Validate test result
         assert res1, "Traffic test failure"
