@@ -254,6 +254,8 @@ class TestUdpBidir:
         res4 = su.check_flow_tx_rx_frames_stats(dataplane, f4.name)
         print("res1 and res2 and res3 and res4 is {} {} {} {}".format(res1, res2, res3, res4))
 
+        dataplane.teardown()
+        
         # Validate test result  
         assert res1, "Traffic test failure"
         assert res2, "Traffic test failure"
