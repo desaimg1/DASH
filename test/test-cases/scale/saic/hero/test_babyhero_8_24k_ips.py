@@ -50,11 +50,11 @@ TRAFFIC_SLEEP_TIME = (TOTALPACKETS / PPS) + 2
 ###############################################################
 
 @pytest.fixture(scope="class")
-def dp(request, dataplane):
-    dataplane.configuration.devices.device(name='Topology 1')
-    dataplane.configuration.devices.device(name='Topology 2')
-    eth = dataplane.configuration.devices[0].ethernets.add()
-    eth.port_name = dataplane.configuration.ports[0].name
+def dp(request, dataplane_cls):
+    dataplane_cls.configuration.devices.device(name='Topology 1')
+    dataplane_cls.configuration.devices.device(name='Topology 2')
+    eth = dataplane_cls.configuration.devices[0].ethernets.add()
+    eth.port_name = dataplane_cls.configuration.ports[0].name
     eth.name = 'Ethernet 1'
     eth.mac = "80:09:02:01:00:01"
     ipv4 = eth.ipv4_addresses.add()
@@ -62,7 +62,7 @@ def dp(request, dataplane):
     ipv4.address = '220.0.1.2'
     ipv4.gateway = '220.0.1.1'
     ipv4.prefix = 24
-    bgpv4 = dataplane.configuration.devices[0].bgp
+    bgpv4 = dataplane_cls.configuration.devices[0].bgp
     bgpv4.router_id = '220.0.1.1'
     bgpv4_int = bgpv4.ipv4_interfaces.add()
     bgpv4_int.ipv4_name = ipv4.name
@@ -75,8 +75,8 @@ def dp(request, dataplane):
     route_range.addresses.add(address='221.0.1.1', prefix=32, count=NUMBER_OF_ROUTES)
 
     ## Rx side 
-    eth = dataplane.configuration.devices[1].ethernets.add()
-    eth.port_name = dataplane.configuration.ports[1].name
+    eth = dataplane_cls.configuration.devices[1].ethernets.add()
+    eth.port_name = dataplane_cls.configuration.ports[1].name
     eth.name = 'Ethernet 2'
     eth.mac = "80:09:02:01:00:03"
     ipv4 = eth.ipv4_addresses.add()
@@ -84,7 +84,7 @@ def dp(request, dataplane):
     ipv4.address = '220.0.1.1'
     ipv4.gateway = '220.0.1.2'
     ipv4.prefix = 24
-    bgpv4 = dataplane.configuration.devices[1].bgp
+    bgpv4 = dataplane_cls.configuration.devices[1].bgp
     bgpv4.router_id = '220.0.1.1'
     bgpv4_int = bgpv4.ipv4_interfaces.add()
     bgpv4_int.ipv4_name = ipv4.name
@@ -98,9 +98,9 @@ def dp(request, dataplane):
 
     # Flow1 settings
     for i in range (1, TOTAL_FLOWS+1):
-        f1 = dataplane.configuration.flows.flow(name="ENI_TO_NETWORK" + str(i))[-1]
-        f1.tx_rx.port.tx_name = dataplane.configuration.ports[0].name
-        f1.tx_rx.port.rx_name = dataplane.configuration.ports[1].name
+        f1 = dataplane_cls.configuration.flows.flow(name="ENI_TO_NETWORK" + str(i))[-1]
+        f1.tx_rx.port.tx_name = dataplane_cls.configuration.ports[0].name
+        f1.tx_rx.port.rx_name = dataplane_cls.configuration.ports[1].name
         f1.size.fixed = 128
         # send n packets and stop
         f1.duration.fixed_packets.packets = TOTALPACKETS
@@ -146,10 +146,10 @@ def dp(request, dataplane):
         inner_udp1.src_port.value = 10000
         inner_udp1.dst_port.value = 20000
 
-    dataplane.set_config()
-    dataplane.start_protocols()
+    dataplane_cls.set_config()
+    dataplane_cls.start_protocols()
     time.sleep(10)
-    request.cls.dp = dataplane
+    request.cls.dp = dataplane_cls
 
 @pytest.mark.usefixtures("dp")
 class TestHero:
@@ -313,9 +313,9 @@ class TestHero:
 
 
     def test_deny_ip_failed(self):
-        f1 = dataplane.configuration.flows.flow(name="ENI_TO_NETWORK_DENY")[-1]
-        f1.tx_rx.port.tx_name = dataplane.configuration.ports[0].name
-        f1.tx_rx.port.rx_name = dataplane.configuration.ports[1].name
+        f1 = dataplane_cls.configuration.flows.flow(name="ENI_TO_NETWORK_DENY")[-1]
+        f1.tx_rx.port.tx_name = dataplane_cls.configuration.ports[0].name
+        f1.tx_rx.port.rx_name = dataplane_cls.configuration.ports[1].name
         f1.size.fixed = 128
         # send 1000 packets and stop
         f1.duration.fixed_packets.packets = TOTALPACKETS
@@ -361,7 +361,7 @@ class TestHero:
         inner_udp1.src_port.value = 10000
         inner_udp1.dst_port.value = 20000
 
-        dataplane.set_config()
+        dataplane_cls.set_config()
 
         self.dp.start_traffic(f1.name)
         time.sleep(TRAFFIC_SLEEP_TIME)
@@ -371,9 +371,9 @@ class TestHero:
         assert  val == True
 
     def test_allow_ip_with_different_mac(self):
-        f1 = dataplane.configuration.flows.flow(name="ENI_TO_NETWORK_DENY")[-1]
-        f1.tx_rx.port.tx_name = dataplane.configuration.ports[0].name
-        f1.tx_rx.port.rx_name = dataplane.configuration.ports[1].name
+        f1 = dataplane_cls.configuration.flows.flow(name="ENI_TO_NETWORK_DENY")[-1]
+        f1.tx_rx.port.tx_name = dataplane_cls.configuration.ports[0].name
+        f1.tx_rx.port.rx_name = dataplane_cls.configuration.ports[1].name
         f1.size.fixed = 128
         # send 1000 packets and stop
         f1.duration.fixed_packets.packets = TOTALPACKETS
@@ -419,7 +419,7 @@ class TestHero:
         inner_udp1.src_port.value = 10000
         inner_udp1.dst_port.value = 20000
 
-        dataplane.set_config()
+        dataplane_cls.set_config()
 
         self.dp.start_traffic(f1.name)
         time.sleep(TRAFFIC_SLEEP_TIME)

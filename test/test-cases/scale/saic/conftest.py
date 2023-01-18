@@ -72,3 +72,12 @@ def dataplane(dataplane_instance):
         dataplane_instance.teardown()
     else:
         yield None
+
+@pytest.fixture(scope="class")
+def dataplane_cls(dataplane_instance):
+    if dataplane_instance:
+        dataplane_instance.setup()
+        yield dataplane_instance
+        dataplane_instance.teardown()
+    else:
+        yield None
