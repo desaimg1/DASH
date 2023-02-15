@@ -80,6 +80,7 @@ class TestUdpBidir:
         pprint(results)
         assert all(results), "Setup error"
 
+
     @pytest.mark.dependency(depends=['TestUdpBidir::test_setup'])
     def test_vm_to_vm_commn_udp_bidir(self, dataplane):
 
@@ -274,6 +275,7 @@ class TestUdpBidir:
         assert res2, "Traffic test failure"
         assert res3, "Traffic test failure"
         assert res4, "Traffic test failure"
+
 
     @pytest.mark.dependency(depends=['TestUdpBidir::test_setup'])
     def test_cleanup(self, dpu, setup_config):
