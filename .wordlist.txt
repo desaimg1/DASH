@@ -356,6 +356,8 @@ num
 NumberOfFlowResimulated
 NVA
 NVidia
+nvgre
+Nvgre
 NVMe
 observability
 OCP
@@ -670,3 +672,5 @@ Velayudhan
 deparsing
 testability
 autogeneration
+Srinivasan
+Vijay
